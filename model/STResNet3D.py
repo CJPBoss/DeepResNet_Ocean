@@ -82,7 +82,9 @@ def STResNet3D(input_c, input_p, input_t,
     # Arguments:
     #   input_c, input_p, input_t:
     #       a 5-D tensor, the input of Property closeness, period and trend.
-    #   
+    #       [batch, depth, height, width, channel]
+    #       channel is the same as the length of one input's sequence
+    #
     '''
     if name is None:
         name = 'STResNet3D'
