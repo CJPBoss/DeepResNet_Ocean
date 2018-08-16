@@ -143,36 +143,3 @@ def STResNet3D(input_c, input_p, input_t,
     output = tf.nn.tanh(main_output, name=name + 'Output') # employ tanh to
                                                            # activate the output
     return output
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    pass
