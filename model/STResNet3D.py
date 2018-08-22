@@ -70,7 +70,7 @@ def res_units_3d(inputs, res_unit=_residual_unit_3d,
     return inputs
 
 
-def STResNet3D(input_c, input_p, input_t,
+def STResNet3D(input_c, input_p=None, input_t=None,
                kernel_size=((3, 3, 3), (3, 3, 3), (3, 3, 3)),
                filters=(64, 64, 64), 
                strides=((1, 1, 1), (1, 1, 1), (1, 1, 1)),
@@ -129,6 +129,7 @@ def STResNet3D(input_c, input_p, input_t,
         
         if len(outputs) == 1:
             main_output = outputs[0]
+            print('===============', main_output.shape)
         else:
             new_outputs = []
             for i in range(len(outputs)):

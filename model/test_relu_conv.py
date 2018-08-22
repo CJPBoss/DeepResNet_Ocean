@@ -46,7 +46,18 @@ def createbatch(x, y):
     for i in range(10):
         classify[i] = np.array(classify[i][:4320])
     return classify
+
+sta = 0
+leng = 100
+def create(data):
+    cimg = [img.reshape((-1, 72, 3, 28, 28)) for img in data]
+    cimg = [np.swapaxes(img, 2, 3) for img in cimg]
+    cimg = [np.swapaxes(img, 3, 4) for img in cimg]
     
+    return [cimg[0][sta:sta+leng], cimg[1][sta:sta+leng], cimg[2][sta:sta+leng], cimg[3][sta:sta+leng, ::, ::, ::, 0:1]]
+    #res = [list(i) for i in res]
+    #return res
+
 if __name__ == '__main__':
 
     # test over fitting
@@ -62,39 +73,47 @@ if __name__ == '__main__':
     x_c = tf.placeholder(tf.float32, [None, 72, 28, 28, 3])
     x_p = tf.placeholder(tf.float32, [None, 72, 28, 28, 3])
     x_t = tf.placeholder(tf.float32, [None, 72, 28, 28, 3])
-    
-    y = tf.placeholder(tf.float32, [None, 72, 28, 28, 1])
+    y_ = tf.placeholder(tf.float32, [None, 72, 28, 28, 1])
     #y = tf.placeholder(tf.float32, [None, 28 * 28])
-    
-    resnet = STResNet3D(x_c, x_p, x_t, name='test')
+    #
+    resnet = STResNet3D(x_c, None, None, name='test') #
+
     
     
     #a = tf.reshape(resnet, [-1, 72*28*28])
     #b = tf.layers.dense(a, 28*28)
-    loss = tf.losses.mean_squared_error(y, resnet)
+    loss = tf.losses.mean_squared_error(y_, resnet)
+    tf.summary.scalar('loss', loss)
     #loss = tf.losses.mean_squared_error(y, b)
     
     train_op = tf.train.AdamOptimizer(LR).minimize(loss)
+    merged = tf.summary.merge_all()
     
     sess = tf.Session()
+    print("\n====================")
+    writer = tf.summary.FileWriter('test/residual_net', sess.graph)
+    
     sess.run(tf.global_variables_initializer())
     print('STResNet shape:', resnet.shape)
     print('cimg shape:', cimg[0][0:1].shape)
     print('cimg shape:', cimg[3][0:1, ::, ::, ::, 0:1].shape)
     printarray(cimg[3][0, 0, ::, ::, 0].reshape((28, 28)))
+    
+    x, y = mnist.train.next_batch(60000)
+    b_c, b_p, b_t, b_y = create(createbatch(x, y))
+    print(b_c.shape, b_p.shape, b_t.shape, b_y.shape)
+    
     for i in range(10000):
-        _, loss_ = sess.run([train_op, loss], {x_c: cimg[0][0:1],
-                                               x_p: cimg[1][0:1],
-                                               x_t: cimg[2][0:1],
-                                               y: cimg[3][0:1, ::, ::, ::, 0:1]})
+        x, y = mnist.train.next_batch(60000)
+        b_c, b_p, b_t, b_y = create(createbatch(x, y))
+        inputdict = {x_c: b_c, x_p: b_p, x_t: b_t}
+        outputdict = {x_c: b_c, x_p: b_p, x_t: b_t, y_: b_y}
+        _, loss_ = sess.run([train_op, loss], outputdict)
                                                #y: [[1.5]]})
-        print('.', end='')
         if i % 50 == 0:
             print('\nstep:', i, 'loss', loss_)
             
-            img = sess.run(resnet, {x_c: cimg[0][0:1],
-                                    x_p: cimg[1][0:1],
-                                    x_t: cimg[2][0:1],})
+            img = sess.run(resnet, inputdict)
             '''
             print(img = sess.run(b, {x_c: cimg[0][0:1],
                                x_p: cimg[1][0:1],
@@ -103,6 +122,8 @@ if __name__ == '__main__':
             '''
             img = np.array(img)[0:1, 0, ::, ::, 0:1].reshape((28, 28))
             printarray(img)
+            res = sess.run(merged, outputdict)
+            writer.add_summary(res, i)
             
     
     #
