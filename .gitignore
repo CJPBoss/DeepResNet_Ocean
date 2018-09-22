@@ -108,3 +108,4 @@ temp/
 test/
 *.png
 event.*
+*.mat
