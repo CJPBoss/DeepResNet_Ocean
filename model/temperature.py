@@ -6,7 +6,7 @@ import sys
 import os
 import time
 
-MAINDIRPATH = 'E:/Tim/onedrive/Code/py_desktop/DeepResNet_Ocean/'
+MAINDIRPATH = os.path.abspath(os.path.join(os.getcwd(), ".."))+'/'#'E:/Tim/onedrive/Code/py_desktop/DeepResNet_Ocean/'
 sys.path.append(MAINDIRPATH)
 from datasets.load_temperature import create_batch, load_data
 from datasets.ReadBOA_Argo_mat import SaveImage
@@ -28,26 +28,17 @@ outstep = 100
 isTrained = True
 version = 'v1.02'
 alldata = None
-savename = 'model/temperature/saver/'
-savePath = MAINDIRPATH + savename
-sessname = 'model/temperature/board/'
-sessPath = MAINDIRPATH + sessname
+savename = 'temperature/saver/'
+savePath = savename
+sessname = 'temperature/board/'
+sessPath = sessname
 if not os.path.exists(savePath):
     os.makedirs(savePath)
 
 if __name__ == '__main__':
     alldata = load_data()
     batches = create_batch(batch_size, channels, intervals, alldata)
-    #print('batches', type(batches), len(batches))
-    #print(type(batches[0]), batches[0].shape)
-    '''
-    for i in range(len(batches)):
-        print(i)
-        print(type(batches[i]), len(batches[i]))
-        print(type(batches[i][0]), batches[i][0].shape)
-    print(batches[-1][0])
-    #print(type(batches[-1][0]), batches[-1][0].shape)
-    '''
+    
     x_input = []
     for i in range(len_proc):
         x_ph = tf.placeholder(tf.float32, [None, imgdepth, imgheight, imgwidth, channels[i]])
@@ -98,7 +89,7 @@ if __name__ == '__main__':
                 print('ext time: [%d:%02d]'%(needtime / 60, needtime % 60), end=' ')
             res = sess.run(resnet, indict)
             print('step:[', i, ']loss:[', loss_, ']\n+++++++++++\n\n')
-            imgpath = 'temperature/' + version + '/step_' + str(i) + '/'
+            imgpath = 'temperature/image' + version + '/step_' + str(i) + '/'
             if not os.path.exists(imgpath):
                 os.makedirs(imgpath)
             SaveImage(np.array(res[0]).reshape((26, 20, 20)) * 30., imgpath + 'p')
