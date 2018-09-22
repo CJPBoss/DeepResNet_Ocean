@@ -109,3 +109,4 @@ test/
 *.png
 event.*
 *.mat
+model/temperature/*
