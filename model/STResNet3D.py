@@ -70,7 +70,7 @@ def res_units_3d(inputs, res_unit=_residual_unit_3d,
     return inputs
 
 
-def STResNet3D(input_c, input_p=None, input_t=None,
+def STResNet3D(inputs,
                kernel_size=((3, 3, 3), (3, 3, 3), (3, 3, 3)),
                filters=(64, 64, 64), 
                strides=((1, 1, 1), (1, 1, 1), (1, 1, 1)),
@@ -88,7 +88,6 @@ def STResNet3D(input_c, input_p=None, input_t=None,
     '''
     if name is None:
         name = 'STResNet3D'
-    inputs = [input_c, input_p, input_t]
     outputs = [] # output list of each property
     with tf.name_scope(name) as stresnet3d:
         for i in range(3): # 3 properties

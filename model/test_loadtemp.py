@@ -15,13 +15,14 @@ batch_size = 50
 index = None
 trainloop = 5000
 outstep = 50
-isTrained = True
+isTrained = True # if have trained, set to True to load the trained model
 version = 'v1.01'
 savePath = "test/test_" + version + "/save_net.ckpt"
 
 if __name__ == '__main__':
     #dataset = DataSet(path + 'datasets/monthly_data_area.mat')
     dataset = DataSet(r'E:\Tim\onedrive\Code\py_desktop\DeepResNet_Ocean\datasets\monthly_data_area.mat')
+        #path to monthly_data_area.mat
     dataset.init_cs(channels=(2, 2, 2), steps=(1, 3, 12))
     
     x_c = tf.placeholder(tf.float32, [None, 26, 20, 20, 2])
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     
     y = tf.placeholder(tf.float32, [None, 26, 20, 20, 1])
     
-    resnet = STResNet3D(x_c, x_p, x_t,
+    resnet = STResNet3D([x_c, x_p, x_t], 
                         filters=(32 ,32, 32),
                         num_res_units=(2, 1, 1),
                         name='test')
