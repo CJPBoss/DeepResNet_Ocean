@@ -90,11 +90,9 @@ def STResNet3D(inputs,
         name = 'STResNet3D'
     outputs = [] # output list of each property
     with tf.name_scope(name) as stresnet3d:
-        for i in range(3): # 3 properties
+        for i in range(len(inputs)): # num of properties
             id = str(i)
             input = inputs[i]
-            if input is None:
-                continue
             with tf.name_scope("Property" + id) as process:
                 preconv = tf.layers.conv3d( # use conv3d to make the shape of
                                             # tensor suit the res unit
