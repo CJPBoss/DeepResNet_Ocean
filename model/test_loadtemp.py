@@ -2,7 +2,9 @@ import numpy as np
 import tensorflow as tf
 from STResNet3D import STResNet3D
 import sys
-path = 'E:/Tim/onedrive/Code/py_desktop/DeepResNet_Ocean/'
+import os
+path = os.path.abspath(os.path.join(os.getcwd(), ".."))+'/'
+print(path)
 sys.path.append(path + 'datasets') # path to dir
 from loadtemp import DataSet
 from ReadBOA_Argo_mat import SaveImage
@@ -13,11 +15,13 @@ import time
 LR = 1e-6
 batch_size = 50
 index = None
-trainloop = 5000
+trainloop = 200
 outstep = 50
 isTrained = True
 version = 'v1.01'
 savePath = "test/test_" + version + "/save_net.ckpt"
+if not os.path.exists("test/test_" + version):
+    os.makedirs("test/test_" + version + '/')
 
 if __name__ == '__main__':
     #dataset = DataSet(path + 'datasets/monthly_data_area.mat')
@@ -49,7 +53,11 @@ if __name__ == '__main__':
     writer = tf.summary.FileWriter('test/temp', sess.graph)
     
     if isTrained:
-        saver.restore(sess, savePath)
+        try:
+            saver.restore(sess, savePath)
+        except Exception:
+            print('\n=======================\n[---] saved model not found\n========================\n')
+            sess.run(tf.global_variables_initializer())
     else :   
         sess.run(tf.global_variables_initializer())
         
@@ -82,6 +90,7 @@ if __name__ == '__main__':
             if loss_ < min_loss:
                 min_loss = loss_
                 save_path = saver.save(sess, savePath, global_step=i + 1)
+                saver.restore(sess, savePath)
     
     
     
