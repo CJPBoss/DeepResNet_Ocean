@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 import tensorflow as tf
 from STResNet3D import STResNet3D
@@ -84,6 +85,5 @@ if __name__ == '__main__':
                 min_loss = loss_
                 save_path = saver.save(sess, savePath, global_step=i + 1)
     
-    
-    
+
     

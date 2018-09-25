@@ -25,8 +25,10 @@ batch_size = 50
 learn_rate = 1e-6
 train_loop = 5000
 outstep = 100
+stoplimit = 5
+trainsize = 9.0/10
 isTrained = True
-version = 'v1.02'
+version = 'v1.03'
 alldata = None
 savename = 'temperature/saver/'
 savePath = savename
@@ -35,8 +37,19 @@ sessPath = sessname
 if not os.path.exists(savePath):
     os.makedirs(savePath)
 
+def getcorrectsavepath(dirpath):
+    with open(dirpath + 'checkpoint', 'r') as checkpoint:
+        info = checkpoint.readline()
+        file = info.split('"')
+        print(file, file[1])
+        return dirpath + file[1]
+    
 if __name__ == '__main__':
     alldata = load_data()
+    datasize = len(alldata)
+    splitindex = datasize - int(datasize * trainsize)
+    traindata = alldata[splitindex:]
+    testdata = alldata[:splitindex]
     batches = create_batch(batch_size, channels, intervals, alldata)
     
     x_input = []
@@ -61,23 +74,28 @@ if __name__ == '__main__':
     
     if isTrained:
         try:
-            saver.restore(sess, savePath)
+            sp = getcorrectsavepath(savePath)
+            print('[+] load model:', sp)
+            saver.restore(sess, sp)
         except Exception:
             print('[-] Saved model not found:', savePath)
+            print("[+] init model")
             sess.run(tf.global_variables_initializer())
     else:
+        print("[+] init model")
         sess.run(tf.global_variables_initializer())
-    
     
     starttime = time.time()
     min_loss = 100
+    lesstime = 0
+    
     for i in range(train_loop):
-        one_batch = create_batch(batch_size, channels, intervals, alldata)
-        indict = {}
+        one_batch = create_batch(batch_size, channels, intervals, traindata)
+        outdict = {}
         for j in range(len(x_input)):
-            indict[x_input[j]] = one_batch[j]
-        outdict = dict(indict)
+            outdict[x_input[j]] = one_batch[j]
         outdict[y] = one_batch[-1]
+        
         _, loss_ = sess.run([train_op, loss], outdict)
         if (i+1)%outstep == 0 or i == 0:
             print('\n==========================\n[+] ', end='')
@@ -87,13 +105,28 @@ if __name__ == '__main__':
                 needtime = usedtime * (train_loop - i) / i
                 print('used time: [%d:%02d]'%(usedtime / 60, usedtime % 60), end=' ')
                 print('ext time: [%d:%02d]'%(needtime / 60, needtime % 60), end=' ')
-            res = sess.run(resnet, indict)
-            print('step:[', i, ']loss:[', loss_, ']\n+++++++++++\n\n')
+                
+            one_batch = create_batch(batch_size, channels, intervals, testdata)
+            indict = {}
+            for j in range(len(x_input)):
+                indict[x_input[j]] = one_batch[j]
+            indict[y] = one_batch[-1]
+            
+            res, loss__ = sess.run([resnet, loss], indict)
+            print('step:[', i, ']loss:[', loss__, ']\n+++++++++++\n\n')
             imgpath = 'temperature/image' + version + '/step_' + str(i) + '/'
             if not os.path.exists(imgpath):
                 os.makedirs(imgpath)
             SaveImage(np.array(res[0]).reshape((26, 20, 20)) * 30., imgpath + 'p')
             SaveImage(np.array(one_batch[-1][0]).reshape((26, 20, 20)) * 30., imgpath + 'y')
-            if loss_ < min_loss:
-                min_loss = loss_
+            if loss__ < min_loss:
+                min_loss = loss__
                 save_path = saver.save(sess, savePath, global_step=i + 1)
+                #saver.restore(sess, savePath)
+                #print(save_path)
+                lesstime = 0
+            else :
+                lesstime += 1
+                if lesstime >= stoplimit:
+                    print('[+] early stop, less loss :', min_loss)
+                    break
